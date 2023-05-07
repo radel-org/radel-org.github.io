@@ -1,0 +1,289 @@
+<html>
+<head>
+<title>Julian Day Number Calculations</title>
+<script>
+<!-- hide script from old browsers.  See Copyright Notice at end of file.
+var IGREG = (14+31*(10+12*1582));
+var JGREG = 2299160;
+var civcheck = new Civil(5,23,1948,1);
+var istwo = false;
+function Initialize() {
+  if ((navigator.appName == "Netscape") &&
+      (navigator.appVersion.substring(0,1) == "2")) {
+      alert("Requires browser later than Netscape 2.X\nValues displayed in this browser may be incorrect.");
+      istwo = true;
+  }
+  SetToday(document.ThisForm);
+  SetToday(document.ThatForm);
+  SetDelta();
+}
+function SetToday(form) {
+  var now = new Date();
+  var day = now.getDate();
+  var month = now.getMonth()+1;
+  var year = now.getYear(); if (year < 100) {year += 1900};
+  form.MonthList.selectedIndex = month-1;
+  form.DayList.selectedIndex = day-1;
+  if (istwo == true) {
+    form.MonthList.selectedIndex = 0;
+    form.DayList.selectedIndex = 0;
+  }
+  form.YearBox.value = year;
+  form.ADBC.selectedIndex = 0;
+  form.JD.value = "not set";
+  form.IGREG=IGREG;
+  form.JGREG=JGREG;
+  EvalJD(form);
+}
+function SetGreg(form) {
+  form.IGREG=IGREG;
+  form.JGREG=JGREG;
+  EvalCiv(form);
+}
+function SetJulian(form) {
+  form.IGREG=1.e30;
+  form.JGREG=1.e30;
+  EvalCiv(form);
+}
+function CancelSubmit(){ return false; }
+function tolong(val) {
+  if (val >= 0) {return Math.floor(val);}
+  else {return Math.ceil(val);}
+}
+function EvalJD(form) {
+  var id = form.DayList.selectedIndex+1;
+  var mm = form.MonthList.selectedIndex+1;
+  var iyyy = tolong(form.YearBox.value);
+  var ysgn = 1-2*form.ADBC.selectedIndex;
+  var jy=ysgn*iyyy, ja, jm, jul;
+  if (iyyy < 1) {
+    alert("Enter positive year, then specify A.D. or B.C.\n(There was no year 0.)")
+    return;
+  }
+  if (jy<0) ++jy;
+  if (mm > 2) jm=mm+1;
+  else { --jy; jm=mm+13;}
+  jul = tolong(Math.floor(365.25*jy)+Math.floor(30.6001*jm)+id+1720995);
+  if (id+31*(mm+12*ysgn*iyyy) >= form.IGREG) {
+    ja = tolong(0.01*jy);
+    jul += 2-ja+tolong(0.25*ja);
+  }
+  form.JD.value = jul;
+  civcheck=caldat(jul,form);
+  SetDoW(form,jul);
+  SetDelta();
+  if (civcheck.mm != mm || civcheck.dd != id || civcheck.yyyy != iyyy
+      || civcheck.ab != ysgn) {
+      form.JD.value = "no such!";
+      form.dayofweek.value = "???";
+      document.Delta.delta.value = "???";
+  }
+}
+function EvalCiv(form) {
+  civcheck=caldat(form.JD.value,form);
+  form.MonthList.selectedIndex = civcheck.mm-1;
+  form.DayList.selectedIndex = civcheck.dd-1;
+  form.YearBox.value = civcheck.yyyy;
+  form.ADBC.selectedIndex = (civcheck.ab>0 ? 0 : 1) ;
+  SetDoW(form,Math.round(form.JD.value));
+  SetDelta();
+  }
+function Civil(mm,dd,yyyy,ab) {
+  this.mm=mm; this.dd=dd; this.yyyy=yyyy; this.ab=ab;
+}
+function caldat(julian,form) {
+  var civ = new Civil(5,23,1948,1);
+  var ja,jalpha,jb,jc,jd,je;
+  julian = tolong(julian);
+  if (julian > form.JGREG) {
+    jalpha = tolong(((julian-1867216)-0.25)/36524.25);
+    ja=julian+1+jalpha-tolong(0.25*jalpha);
+  } else { ja = julian; }
+  jb=ja+1524;
+  jc=tolong(6680+((jb-2439870)-122.1)/365.25);
+  jd=tolong(365*jc+0.25*jc);
+  je=tolong((jb-jd)/30.6001);
+  civ.dd=jb-jd-tolong(30.6001*je);
+  civ.mm=je-1
+  if (civ.mm>12) civ.mm -= 12;
+  civ.yyyy=jc-4715;
+  if (civ.mm>2) --civ.yyyy;
+  civ.ab=1;
+  if (civ.yyyy <= 0) { civ.yyyy=1-civ.yyyy; civ.ab=-1;}
+  return civ;
+}
+/* for older browsers: */
+dowstr = new Object;
+dowstr[0]="Sunday";
+dowstr[1]="Monday";
+dowstr[2]="Tuesday";
+dowstr[3]="Wednesday";
+dowstr[4]="Thursday";
+dowstr[5]="Friday";
+dowstr[6]="Saturday";
+function SetDoW(form,jull) {
+/*  var dowstr = new Array("Sun","Mon","Tue","Wed","Thu","Fri","Sat"); */
+  var dow=Math.round((jull+1) % 7);
+  form.dayofweek.value=dowstr[dow];  
+}
+function SetDelta() {
+  var diff = parseFloat(document.ThatForm.JD.value)
+    - parseFloat(document.ThisForm.JD.value);
+  document.Delta.delta.value = "  "+diff;
+}
+function SetDiff() {
+  document.ThatForm.JD.value =
+    Math.round(parseFloat(document.ThisForm.JD.value)
+    + parseFloat(document.Delta.delta.value));
+  EvalCiv(document.ThatForm);
+}
+// end hiding script from old browsers -->
+</script>
+</head>
+<body bgcolor="#FFFFFF" onload="Initialize()">
+<center>
+<h2>Julian Day and Civil Date Calculator</h2>
+<table border=3 cellspacing=0 cellpadding=5 width=100 bgcolor="#FFF8E0">
+
+<tr><td>
+<form name="ThisForm">
+
+<table cellspacing=0>
+<tr><td>
+<select name="MonthList" onchange="EvalJD(document.ThisForm)">
+<option selected>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun
+<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec
+</select></td>
+
+<td><font size="-1"><b>
+<select name="DayList" onchange="EvalJD(document.ThisForm)">
+<option selected>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></b></font></td>
+
+<td>
+<input type=text name="YearBox" size=4 onblur="EvalJD(document.ThisForm)">
+</td>
+
+<td><select name="ADBC" onchange="EvalJD(document.ThisForm)">
+<option selected>A.D.
+<option>B.C.
+</select></td>
+
+<td> is&nbsp;a </td>
+
+<td>
+<input type=text name="dayofweek" size=9 onchange="EvalJD(document.ThisForm)">
+</td>
+</tr>
+
+<tr><td colspan=5 align=right>&nbsp;whose Julian Day Number is&nbsp;</td>
+
+<td>
+<input type=text name="JD" size=8 onblur="EvalCiv(document.ThisForm)">
+</td>
+
+</tr>
+<tr>
+<td colspan=6><font size="-1">
+Calendar: <input type=radio name=thiscal value="auto" checked
+onclick="SetGreg(document.ThisForm)">
+Auto (Julian/Gregorian)
+<input type=radio name=thiscal value="julian"
+onclick="SetJulian(document.ThisForm)"> Julian Only
+</font></td>
+</tr>
+</table></form>
+</td></tr>
+
+
+<tr align=center valign=center><td>
+<font size="-1">(Edit the following field for interval calculations.)</font><br>
+<form name="Delta" onsubmit="CancelSubmit()">
+is followed
+<input type=text name=delta size=10 onblur="SetDiff()" onchange="SetDiff()">
+days later by
+</form>
+</td></tr>
+
+<tr><td>
+<form name="ThatForm">
+
+<table cellspacing=0>
+<tr><td>
+<select name="MonthList" onchange="EvalJD(document.ThatForm)">
+<option selected>Jan<option>Feb<option>Mar<option>Apr<option>May<option>Jun
+<option>Jul<option>Aug<option>Sep<option>Oct<option>Nov<option>Dec
+</select></td>
+
+<td><font size="-1"><b>
+<select name="DayList" onchange="EvalJD(document.ThatForm)">
+<option selected>1<option>2<option>3<option>4<option>5<option>6<option>7<option>8<option>9<option>10<option>11<option>12<option>13<option>14<option>15<option>16<option>17<option>18<option>19<option>20<option>21<option>22<option>23<option>24<option>25<option>26<option>27<option>28<option>29<option>30<option>31
+</select></b></font></td>
+
+<td>
+<input type=text name="YearBox" size=4 onblur="EvalJD(document.ThatForm)">
+</td>
+
+<td><select name="ADBC" onchange="EvalJD(document.ThatForm)">
+<option selected>A.D.
+<option>B.C.
+</select></td>
+
+<td> is&nbsp;a </td>
+
+<td>
+<input type=text name="dayofweek" size=9 onchange="EvalJD(document.ThatForm)">
+</td>
+</tr>
+
+<tr><td colspan=5 align=right>&nbsp;whose Julian Day Number is&nbsp;</td>
+
+<td>
+<input type=text name="JD" size=8 onblur="EvalCiv(document.ThatForm)">
+</td>
+</tr>
+<tr>
+<td colspan=6><font size="-1">
+Calendar: <input type=radio name=thatcal value="auto" checked
+onclick="SetGreg(document.ThatForm)">
+Auto (Julian/Gregorian)
+<input type=radio name=thatcal value="julian"
+onclick="SetJulian(document.ThatForm)"> Julian Only
+</font></td>
+</tr>
+</table></form>
+</td></tr>
+<tr>
+<td colspan=6>
+<font size="-1"><ol>
+<li> You must have JavaScript enabled in your browser for this calculator
+to work.  Requires Netscape 3.0 or Internet Explorer 3.0 or later for
+correct operation.
+<li> All fields are editable. Change civil date to calculate Julian
+Day Number and day-of-week, or vice versa.
+<li> After changing a text box,
+click outside of the calculator, or press tab, to update all other data.
+(Don't press return.)
+<li> In Auto mode, civil calendar changes from Julian to Gregorian
+between October 5/16, 1582.  For Julian civil dates after that
+date, as in England and colonies until 1753, select Julian Only.
+</ol></font>
+</td></tr>
+</table>
+</center>
+<p>
+<font size="-2">
+Copyright (C) 1998 by Numerical Recipes Software.  Permission is
+granted for unlimited copying and redistribution, provided that this
+copyright notice, and the following two links, are preserved.  All
+calculations are embedded as JavaScript, so an exact copy of <a
+href="julian.txt">this page's source code</a> will generally work
+from any server (no CGI script needed).<p>
+</font>
+<font size="-1">
+<a href="http://nr.harvard.edu/nr/news.html">back to
+Numerical Recipes News</a><br>
+<a href="http://www.nr.com">back to Numerical Recipes home page</a>
+</font>
+</body>
+</html>
