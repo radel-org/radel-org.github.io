@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>NTPD Loopstat Graph</title>
+	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+	<h1>NTPD Loopstat Graph</h1>
+	<canvas id="loopstat-chart"></canvas>
+
+	<script>
+		// Load the loopstat file data via AJAX
+		const xhr = new XMLHttpRequest();
+		xhr.onreadystatechange = function() {
+			if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+				// Parse the loopstat file data into arrays of x and y values
+				const loopstat = xhr.responseText.split("\n").filter(line => line !== "").map(line => {
+					const [_, offset, delay, jitter, _, _, _, updated] = line.split(" ");
+					return {x: updated * 1000, y: parseFloat(offset)};
+				});
+
+				// Render the loopstat data in a line chart
+				const loopstatChart = new Chart(document.getElementById("loopstat-chart"), {
+					type: 'line',
+					data: {
+						datasets: [{
+							label: "Offset",
+							data: loopstat,
+							fill: false,
+							borderColor: "rgb(75, 192, 192)",
+							lineTension: 0.1
+						}]
+					},
+					options: {
+						scales: {
+							xAxes: [{
+								type: "time",
+								time: {
+									unit: 'minute'
+								},
+								scaleLabel: {
+									display: true,
+									labelString: 'Time'
+								}
+							}],
+							yAxes: [{
+								scaleLabel: {
+									display: true,
+									labelString: 'Offset (ms)'
+								}
+							}]
+						}
+					}
+				});
+			}
+		};
+		xhr.open("GET", "data/lingo/loopstats", true);
+		xhr.send();
+	</script>
+</body>
+</html>
