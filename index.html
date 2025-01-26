@@ -11,10 +11,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            flex-direction: column;
             height: 100vh;
             background-color: #f4f4f4;
             font-family: Arial, sans-serif;
+            overflow: hidden;
         }
         .container {
             text-align: center;
@@ -25,20 +25,20 @@
             gap: 1rem;
         }
         img {
-            width: auto;
-            max-width: 100%;
+            flex-shrink: 0;
+            width: 100%;
+            max-width: 600px;
             height: auto;
-            max-height: 40vh;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
         h1 {
-            font-size: 1.8rem;
+            font-size: calc(1.5rem + 1vw);
             color: #333;
             margin: 0;
         }
         p {
-            font-size: 1.2rem;
+            font-size: calc(1rem + 0.5vw);
             color: #666;
             margin: 0;
         }
@@ -46,7 +46,7 @@
 </head>
 <body>
     <div class="container">
-        <img src="img/wip1.webp" alt="Work in Progress Illustration">
+        <img src="/mnt/data/A_detailed_illustration_of_a_sysadmin_sitting_on_a.png" alt="Work in Progress Illustration">
         <h1>Work in Progress</h1>
         <p>We're working hard to get things ready. Check back soon!</p>
     </div>
